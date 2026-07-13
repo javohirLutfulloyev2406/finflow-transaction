@@ -90,7 +90,8 @@ logging:
 # ---- Domen sozlamalari (keyingi bosqichlarda ishlatiladi) ----
 finflow:
   idempotency:
-    ttl: PT24H
+    ttl: PT24H       # COMPLETED javob qancha yashaydi
+    lock-ttl: PT1M   # IN_PROGRESS marker: crash bo'lsa shu vaqtda o'z-o'zidan tozalanadi
   fraud:
     velocity:
       window: PT1M
