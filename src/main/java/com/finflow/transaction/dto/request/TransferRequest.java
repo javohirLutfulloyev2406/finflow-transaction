@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -21,10 +22,10 @@ import java.math.BigDecimal;
 public class TransferRequest {
 
     @NotNull(message = "sourceAccountId is required")
-    private Long sourceAccountId;
+    private UUID sourceAccountId;
 
     @NotNull(message = "targetAccountId is required")
-    private Long targetAccountId;
+    private UUID targetAccountId;
 
     /** Manfiy yoki nol summa DTO darajasidayoq to'xtatiladi. */
     @NotNull(message = "amount is required")

@@ -2,13 +2,10 @@ package com.finflow.transaction.dto.command;
 
 import com.finflow.transaction.domain.vo.Money;
 
-import java.util.UUID;
-
-public record WithdrawCommand(
+public record RefundCommand(
         Long userId,
-        UUID sourceAccountId,
         Money amount,
-        String description,
+        String reason,
         String idempotencyKey,
         String deviceId,
         String ipAddress

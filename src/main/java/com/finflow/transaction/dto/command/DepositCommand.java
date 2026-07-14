@@ -2,9 +2,11 @@ package com.finflow.transaction.dto.command;
 
 import com.finflow.transaction.domain.vo.Money;
 
+import java.util.UUID;
+
 public record DepositCommand(
         Long userId,
-        Long targetAccountId,
+        UUID targetAccountId,
         Money amount,
         String description,
         String idempotencyKey,

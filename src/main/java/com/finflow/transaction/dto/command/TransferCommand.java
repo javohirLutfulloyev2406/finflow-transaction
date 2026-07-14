@@ -2,6 +2,8 @@ package com.finflow.transaction.dto.command;
 
 import com.finflow.transaction.domain.vo.Money;
 
+import java.util.UUID;
+
 /**
  * Service qatlamining internal modeli.
  *
@@ -12,8 +14,8 @@ import com.finflow.transaction.domain.vo.Money;
  */
 public record TransferCommand(
         Long userId,
-        Long sourceAccountId,
-        Long targetAccountId,
+        UUID sourceAccountId,
+        UUID targetAccountId,
         Money amount,
         String description,
         String idempotencyKey,

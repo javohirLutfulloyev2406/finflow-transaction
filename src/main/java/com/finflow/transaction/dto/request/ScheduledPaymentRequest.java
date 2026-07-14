@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -18,10 +19,10 @@ import java.time.Instant;
 public class ScheduledPaymentRequest {
 
     @NotNull
-    private Long sourceAccountId;
+    private UUID sourceAccountId;
 
     @NotNull
-    private Long targetAccountId;
+    private UUID targetAccountId;
 
     @NotNull
     @DecimalMin("0.0001")

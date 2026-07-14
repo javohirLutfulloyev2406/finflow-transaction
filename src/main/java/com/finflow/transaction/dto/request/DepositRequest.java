@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -19,7 +20,7 @@ import java.math.BigDecimal;
 public class DepositRequest {
 
     @NotNull
-    private Long targetAccountId;
+    private UUID targetAccountId;
 
     @NotNull
     @DecimalMin("0.0001")
