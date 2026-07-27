@@ -74,10 +74,10 @@ public class TransactionEntity extends AbstractAuditEntity implements Serializab
     private Money amount;
 
     @Column(name = "source_account_id")
-    private Long sourceAccountId;
+    private UUID sourceAccountId;
 
     @Column(name = "target_account_id")
-    private Long targetAccountId;
+    private UUID targetAccountId;
 
     @Column(name = "source_user_id")
     private Long sourceUserId;

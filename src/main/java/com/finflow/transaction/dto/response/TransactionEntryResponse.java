@@ -6,10 +6,11 @@ import com.finflow.transaction.enums.EntryType;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 public record TransactionEntryResponse(
         Long id,
-        Long accountId,
+        UUID accountId,
         EntryType entryType,
 
         @JsonFormat(shape = JsonFormat.Shape.STRING)

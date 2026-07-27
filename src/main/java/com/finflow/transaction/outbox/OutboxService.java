@@ -1,4 +1,4 @@
-package com.finflow.transaction.service;
+package com.finflow.transaction.outbox;
 
 import com.finflow.transaction.messaging.event.TransactionEvent;
 

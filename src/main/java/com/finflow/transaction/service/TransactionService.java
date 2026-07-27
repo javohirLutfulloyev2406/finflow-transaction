@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public interface TransactionService {
 
-    TransactionResponse transfer(TransferCommand command);
+   TransactionResponse transfer(TransferCommand command);
 
     TransactionResponse deposit(DepositCommand command);
 

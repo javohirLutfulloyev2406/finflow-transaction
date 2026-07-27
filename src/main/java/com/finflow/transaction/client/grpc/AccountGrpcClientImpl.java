@@ -8,12 +8,14 @@ import com.finflow.transaction.exception.AccountServiceUnavailableException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+
 @Component
 @RequiredArgsConstructor
 public class AccountGrpcClientImpl implements AccountGrpcClient {
 
     @Override
-    public AccountBalance getBalance(Long accountId) {
+    public AccountBalance getBalance(UUID accountId) {
 
         // TODO():
         // proto kelgach AccountServiceGrpc orqali chaqiriladi
@@ -22,7 +24,7 @@ public class AccountGrpcClientImpl implements AccountGrpcClient {
     }
 
     @Override
-    public AccountOperationResult debit(Long accountId, Money amount) {
+    public AccountOperationResult debit(UUID accountId, Money amount) {
 
         // TODO():
         // proto kelgach implementatsiya qilinadi
@@ -31,7 +33,7 @@ public class AccountGrpcClientImpl implements AccountGrpcClient {
     }
 
     @Override
-    public AccountOperationResult credit(Long accountId, Money amount) {
+    public AccountOperationResult credit(UUID accountId, Money amount) {
 
         // TODO():
         // proto kelgach implementatsiya qilinadi

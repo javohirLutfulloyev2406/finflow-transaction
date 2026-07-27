@@ -12,6 +12,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.UUID;
 
 /**
  * Double-entry ledger satri. Yaratilgandan keyin O'ZGARMAYDI (updatable = false).
@@ -41,7 +42,7 @@ public class TransactionEntryEntity extends AbstractLongIdEntity implements Seri
     private TransactionEntity transaction;
 
     @Column(name = "account_id", nullable = false, updatable = false)
-    private Long accountId;
+    private UUID accountId;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "entry_type", nullable = false, updatable = false, length = 8)
@@ -64,4 +65,17 @@ public class TransactionEntryEntity extends AbstractLongIdEntity implements Seri
 
     @Column(name = "booked_at", nullable = false, updatable = false)
     private Instant bookedAt;
+
+
+    public static TransactionEntryEntity book(TransactionEntity transaction, UUID accountId,
+                                              EntryType entryType, Money amount) {
+        TransactionEntryEntity entry = TransactionEntryEntity.builder()
+                .accountId(accountId)
+                .entryType(entryType)
+                .amount(amount)
+                .bookedAt(Instant.now())
+                .build();
+        transaction.addEntry(entry);
+        return entry;
+    }
 }

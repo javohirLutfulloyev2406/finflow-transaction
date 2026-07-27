@@ -24,8 +24,8 @@ public record TransactionResponse(
         BigDecimal amount,
 
         Currency currency,
-        Long sourceAccountId,
-        Long targetAccountId,
+        UUID sourceAccountId,
+        UUID targetAccountId,
         String description,
         String failureReason,
         Instant initiatedAt,
