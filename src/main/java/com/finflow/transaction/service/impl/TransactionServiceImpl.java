@@ -1,7 +1,7 @@
 package com.finflow.transaction.service.impl;
 
+import com.finflow.transaction.client.AccountClient;
 import com.finflow.transaction.client.dto.AccountOperationResult;
-import com.finflow.transaction.client.grpc.AccountGrpcClient;
 import com.finflow.transaction.domain.SystemAccounts;
 import com.finflow.transaction.domain.TransactionEntity;
 import com.finflow.transaction.domain.TransactionEntryEntity;
@@ -41,10 +41,10 @@ import java.util.UUID;
 
 /**
  * MUHIM: bu klass ATAYLAB @Transactional emas.
- * gRPC chaqiruvi (tarmoq, sekin) ochiq DB connection/lock bilan bir vaqtda
+ * REST client chaqiruvi (tarmoq, sekin) ochiq DB connection/lock bilan bir vaqtda
  * yuz bermasligi kerak. Shu sabab TransactionTemplate orqali 2 ta QISQA
  * tranzaksiya ochiladi (PENDING yozish, keyin COMPLETED/FAILED yozish),
- * ular orasida gRPC chaqiruvi hech qanday tranzaksiyasiz ishlaydi.
+ * ular orasida REST client chaqiruvi hech qanday tranzaksiyasiz ishlaydi.
  */
 @Slf4j
 @Service
@@ -54,7 +54,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final TransactionMapper transactionMapper;
     private final SagaService sagaService;
-    private final AccountGrpcClient accountGrpcClient;
+    private final AccountClient accountClient;
     private final IdempotencyService idempotencyService;
     private final RequestHasher requestHasher;
     private final JsonUtil jsonUtil;
@@ -101,11 +101,11 @@ public class TransactionServiceImpl implements TransactionService {
         // 3) Tashqi chaqiruv — HECH QANDAY DB tranzaksiyasiz.
         AccountOperationResult result;
         try {
-            result = accountGrpcClient.credit(command.targetAccountId(), command.amount());
+            result = accountClient.credit(command.targetAccountId(), command.amount());
         } catch (RuntimeException e) {
-            log.error("gRPC credit failed for transaction={}, targetAccount={}",
+            log.error("Account service credit failed for transaction={}, targetAccount={}",
                     transaction.getId(), command.targetAccountId(), e);
-            TransactionResponse response = finalizeFailed(transaction.getId(), "GRPC_TIMEOUT", e.getMessage());
+            TransactionResponse response = finalizeFailed(transaction.getId(), "ACCOUNT_SERVICE_TIMEOUT", e.getMessage());
             completeIdempotency(command.userId(), command.idempotencyKey(), requestHash, 502, response);
             throw e;
         }
@@ -157,11 +157,11 @@ public class TransactionServiceImpl implements TransactionService {
         // boshqa so'rov balansni o'zgartirishi mumkin). debit() o'zi atomik tekshiradi.
         AccountOperationResult result;
         try {
-            result = accountGrpcClient.debit(command.sourceAccountId(), command.amount());
+            result = accountClient.debit(command.sourceAccountId(), command.amount());
         } catch (RuntimeException e) {
-            log.error("gRPC debit failed for transaction={}, sourceAccount={}",
+            log.error("Account service debit failed for transaction={}, sourceAccount={}",
                     transaction.getId(), command.sourceAccountId(), e);
-            TransactionResponse response = finalizeFailed(transaction.getId(), "GRPC_TIMEOUT", e.getMessage());
+            TransactionResponse response = finalizeFailed(transaction.getId(), "ACCOUNT_SERVICE_TIMEOUT", e.getMessage());
             completeIdempotency(command.userId(), command.idempotencyKey(), requestHash, 502, response);
             throw e;
         }
@@ -223,10 +223,10 @@ public class TransactionServiceImpl implements TransactionService {
         // 1-QADAM: DEBIT_SOURCE — DB tranzaksiyasidan tashqarida.
         AccountOperationResult debitResult;
         try {
-            debitResult = accountGrpcClient.debit(command.sourceAccountId(), command.amount());
+            debitResult = accountClient.debit(command.sourceAccountId(), command.amount());
         } catch (RuntimeException e) {
-            log.error("gRPC debit failed (transfer), transaction={}", transactionId, e);
-            TransactionResponse response = finalizeTransferFailed(transactionId, "GRPC_TIMEOUT_DEBIT", e.getMessage());
+            log.error("Account service debit failed (transfer), transaction={}", transactionId, e);
+            TransactionResponse response = finalizeTransferFailed(transactionId, "ACCOUNT_SERVICE_TIMEOUT_DEBIT", e.getMessage());
             completeIdempotency(command.userId(), command.idempotencyKey(), requestHash, 502, response);
             throw e;
         }
@@ -247,10 +247,10 @@ public class TransactionServiceImpl implements TransactionService {
         // 2-QADAM: CREDIT_TARGET.
         AccountOperationResult creditResult;
         try {
-            creditResult = accountGrpcClient.credit(command.targetAccountId(), command.amount());
+            creditResult = accountClient.credit(command.targetAccountId(), command.amount());
         } catch (RuntimeException e) {
-            log.warn("gRPC credit failed (transfer), kompensatsiya boshlanadi. transaction={}", transactionId, e);
-            return compensate(transactionId, command, requestHash, "GRPC_TIMEOUT_CREDIT: " + e.getMessage());
+            log.warn("Account service credit failed (transfer), kompensatsiya boshlanadi. transaction={}", transactionId, e);
+            return compensate(transactionId, command, requestHash, "ACCOUNT_SERVICE_TIMEOUT_CREDIT: " + e.getMessage());
         }
 
         if (!creditResult.success()) {
@@ -286,10 +286,10 @@ public class TransactionServiceImpl implements TransactionService {
 
         AccountOperationResult refundResult;
         try {
-            refundResult = accountGrpcClient.credit(command.sourceAccountId(), command.amount());
+            refundResult = accountClient.credit(command.sourceAccountId(), command.amount());
         } catch (RuntimeException e) {
             return handleCompensationFailure(transactionId,
-                    "GRPC_TIMEOUT_ON_COMPENSATION: " + e.getMessage());
+                    "ACCOUNT_SERVICE_TIMEOUT_ON_COMPENSATION: " + e.getMessage());
         }
 
         if (!refundResult.success()) {

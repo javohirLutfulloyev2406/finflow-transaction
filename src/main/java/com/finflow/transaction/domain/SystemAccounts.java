@@ -14,7 +14,7 @@ import java.util.UUID;
  * Barcha environment (dev/staging/prod)da bir xil qiymat kerak — aks holda
  * environment'lar orasida reconciliation solishtirilmaydigan holga keladi.
  *
- * Bu account'lar account-service'da MAVJUD EMAS va gRPC orqali HECH QACHON
+ * Bu account'lar account-service'da MAVJUD EMAS va REST client orqali HECH QACHON
  * chaqirilmaydi (debit/credit/getBalance) — faqat tx_sch.transaction_entries'da
  * SUM(DEBIT) == SUM(CREDIT) invariantini saqlash uchun ishlatiladi.
  */
