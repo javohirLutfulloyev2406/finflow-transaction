@@ -16,7 +16,7 @@ Har bir qaror shu prizmadan o'tadi.
 
 ### Sherik servicelar
 - `finflow-user` — auth, JWT, roles/permissions
-- `finflow-account` — hisob, balans, gRPC: `Debit` / `Credit` / `GetBalance`
+- `finflow-account` — hisob, balans, REST client: `debit` / `credit` / `getBalance` (`AccountClient` → `client/rest/AccountRestClient`)
 - `finflow-gateway`, `finflow-notification`, `finflow-audit`
 
 ---
@@ -32,7 +32,7 @@ Har bir qaror shu prizmadan o'tadi.
 | Migration | Flyway (majburiy, `ddl-auto: validate`) |
 | Cache/Lock | Redis 7.4 (Lettuce) |
 | Broker | Kafka + Schema Registry |
-| Internal RPC | gRPC (account-service bilan) |
+| Internal RPC | REST client — `RestClient` (account-service bilan). gRPC EMAS |
 | Scheduler | Quartz (clustered, JDBC job store) |
 | Mapping | MapStruct (qo'lda mapper yozilmaydi) |
 | Boilerplate | Lombok |
@@ -48,7 +48,6 @@ Base package: `com.finflow.transaction`
 ```
 config/          config/listener/
 controller/      controller/admin/
-grpc/
 domain/          domain/base/    domain/vo/
 enums/
 dto/             dto/request/  dto/response/  dto/filter/  dto/specification/  dto/command/
@@ -60,7 +59,7 @@ saga/            saga/step/   saga/compensation/
 outbox/
 messaging/       messaging/event/  messaging/event/incoming/  messaging/producer/  messaging/consumer/
 fraud/           fraud/rule/
-client/          client/grpc/  client/fallback/
+client/          client/rest/  client/fallback/
 scheduler/       scheduler/job/
 security/
 exception/
@@ -161,8 +160,45 @@ Bu qoidalar user-service'dagi mavjud koddan olingan. Chetga chiqilmaydi.
 
 ---
 
-## 7. Hozircha noaniq (so'ralishi kerak)
+## 7. Hal qilingan va hozircha ochiq bandlar
 
-- `account-service` gRPC proto fayli — hali qo'lda yo'q
-- `user_id` tipi: `Long` (user-service'da `AbstractAuditEntity<Long>`) — tasdiqlansin
-- Currency: `UZS, USD, EUR, RUB` (TZ) — account-service enum'i bilan bir xil bo'lishi kerak
+### Tasdiqlangan (2026-08-16)
+
+- **`user_id` tipi — `Long`.** Uchala servisning haqiqiy kodi tekshirilib tasdiqlandi:
+  `finflow-user-service` (`UserEntity extends AbstractAuditEntity<Long>`), `account-service`
+  (`Account.userId: Long`), `finflow-transaction` (`TransactionEntity.sourceUserId/targetUserId: Long`).
+  Bundan buyon taxmin emas, qaror sifatida ishlatiladi.
+- **account-service bilan aloqa — REST client, gRPC EMAS.** `client/rest/AccountRestClient`
+  (`org.springframework.web.client.RestClient`) orqali amalga oshirilgan, real account-service
+  endpointlariga mos: `GET /api/v1/accounts/{id}`, `POST /api/v1/accounts/deposit/{id}`,
+  `POST /api/v1/accounts/withdraw/{id}`. gRPC proto fayli bandi shu sabab olib tashlandi — kerak emas.
+
+### Hal qilingan (2026-08-17)
+
+- **Auth propagation.** `AccountRestClientConfig`'ga `RestClient` request interceptor qo'shildi —
+  kiruvchi HTTP so'rovning `Authorization` header'i (`RequestContextHolder` orqali) account-service'ga
+  chaqiruvda avtomatik forward qilinadi. Quartz job / Kafka consumer thread'ida so'rov konteksti
+  yo'q — bunday holatda hozircha token forward qilinmaydi (quyidagi ochiq band).
+
+### Hali ochiq
+
+- **Currency mismatch (RUB).** transaction-service: `UZS, USD, EUR, RUB`. account-service:
+  faqat `UZS, USD, EUR` — `RUB` yo'q. account-service'ga `RUB` qo'shilmaguncha, RUB bilan
+  deposit/withdraw so'rovi account-service'da `Currency.valueOf("RUB")` xatosi bilan qulaydi.
+- **Service-to-service auth (Quartz/Kafka konteksti).** Auth propagation faqat HTTP so'rov
+  ichida ishlaydi (asl foydalanuvchi tokeni bor joyda). ScheduledPaymentJob yoki Kafka consumer
+  orqali chaqirilgan deposit/withdraw'da HTTP konteksti yo'q — bu holat uchun alohida
+  service-to-service token strategiyasi kelishilishi kerak.
+- **Xato kontrakti strukturasiz.** account-service xatolarni turli status kod bilan qaytaradi
+  (404/403/401/400 — `ex.getCode()`ga qarab), lekin body har doim oddiy matn (`ex.getMessage()`),
+  JSON emas. Shu sabab transaction-service `INSUFFICIENT_FUNDS`ni boshqa 400 xatolardan
+  ajrata olmaydi (`TransactionServiceImpl.withdraw()`dagi TODO shu haqida).
+- **`operationId` yo'q.** account-service'ning `BalanceResponse`'ida audit ID chiqmaydi
+  (`BalanceAudit.id` bor, javobga qo'shilmagan) — `AccountOperationResult.operationId()` doim null.
+- **Refund summasi.** Qaror qilindi: refund har doim **to'liq** (original tranzaksiya summasi bo'yicha,
+  qisman qaytarish yo'q). `RefundCommand`da shuning uchun `amount` maydoni yo'q — service
+  implementatsiyasi original tranzaksiyani topib, undan summani olishi kerak.
+- **TRANSACTION:CANCEL / TRANSACTION:REFUND permission kodi yo'q.** user-service'da faqat
+  `TRANSACTION:READ` va `TRANSACTION:CREATE` bor. Hozircha cancel/refund endpointlari faqat
+  `isAuthenticated()` bilan himoyalangan (permission tekshiruvisiz) — kod qo'shilsa `@PreAuthorize`
+  ham yangilanishi kerak.

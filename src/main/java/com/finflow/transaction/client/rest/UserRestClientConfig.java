@@ -7,15 +7,15 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestClient;
 
 @Configuration
-@EnableConfigurationProperties(AccountServiceProperties.class)
+@EnableConfigurationProperties(UserServiceProperties.class)
 @RequiredArgsConstructor
-public class AccountRestClientConfig {
+public class UserRestClientConfig {
 
-    private final AccountServiceProperties properties;
+    private final UserServiceProperties properties;
     private final AuthHeaderPropagationInterceptor authHeaderPropagationInterceptor;
 
     @Bean
-    public RestClient accountServiceRestClient(RestClient.Builder builder) {
+    public RestClient userServiceRestClient(RestClient.Builder builder) {
         return builder
                 .baseUrl(properties.getBaseUrl())
                 .requestFactory(RestClientFactorySupport.timeoutFactory(

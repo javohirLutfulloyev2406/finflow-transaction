@@ -4,6 +4,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.Optional;
 
@@ -12,13 +14,18 @@ import java.util.Optional;
 public class JpaConfig {
 
     /**
-     * Hozircha "system". Security qo'shilgach:
-     *   SecurityContextHolder.getContext().getAuthentication().getName()
-     * Kafka consumer / Quartz job kontekstida authentication bo'lmaydi —
-     * shuning uchun fallback har doim kerak.
+     * HTTP so'rovda JwtAuthenticationFilter userId'ni (Long) principal sifatida qo'yadi.
+     * Kafka consumer / Quartz job kontekstida authentication bo'lmaydi (thread'da
+     * SecurityContext yo'q) — shuning uchun "system" fallback saqlanadi.
      */
     @Bean
     public AuditorAware<String> auditorAware() {
-        return () -> Optional.of("system");
+        return () -> {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof Long userId)) {
+                return Optional.of("system");
+            }
+            return Optional.of(userId.toString());
+        };
     }
 }

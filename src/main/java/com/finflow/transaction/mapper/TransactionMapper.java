@@ -4,9 +4,11 @@ import com.finflow.transaction.domain.TransactionEntity;
 import com.finflow.transaction.domain.TransactionEntryEntity;
 import com.finflow.transaction.domain.vo.Money;
 import com.finflow.transaction.dto.command.DepositCommand;
+import com.finflow.transaction.dto.command.RefundCommand;
 import com.finflow.transaction.dto.command.TransferCommand;
 import com.finflow.transaction.dto.command.WithdrawCommand;
 import com.finflow.transaction.dto.request.DepositRequest;
+import com.finflow.transaction.dto.request.RefundRequest;
 import com.finflow.transaction.dto.request.TransferRequest;
 import com.finflow.transaction.dto.request.WithdrawRequest;
 import com.finflow.transaction.dto.response.TransactionEntryResponse;
@@ -82,4 +84,12 @@ public interface TransactionMapper {
             expression = "java(Money.of(request.getAmount(), request.getCurrency()))")
     WithdrawCommand toCommand(WithdrawRequest request, Long userId, String idempotencyKey,
                               String deviceId, String ipAddress);
+
+    @Mapping(target = "userId", source = "userId")
+    @Mapping(target = "idempotencyKey", source = "idempotencyKey")
+    @Mapping(target = "deviceId", source = "deviceId")
+    @Mapping(target = "ipAddress", source = "ipAddress")
+    @Mapping(target = "reason", source = "request.reason")
+    RefundCommand toCommand(RefundRequest request, Long userId, String idempotencyKey,
+                            String deviceId, String ipAddress);
 }

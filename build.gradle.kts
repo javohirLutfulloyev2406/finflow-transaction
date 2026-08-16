@@ -75,12 +75,18 @@ dependencies {
     testImplementation("com.tngtech.archunit:archunit-junit5:1.3.0")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
+    // ---- Security ----
+    implementation("org.springframework.boot:spring-boot-starter-security")
+
+    // JWT — user-service bilan bir xil versiya/algoritm (HS256). Token bu yerda faqat validate qilinadi.
+    implementation("io.jsonwebtoken:jjwt-api:0.12.3")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:0.12.3")
+
     // ---- Keyingi bosqichlarda ochiladi ----
-    // implementation("org.springframework.boot:spring-boot-starter-security")
     // implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     // implementation("org.springframework.boot:spring-boot-starter-quartz")
     // implementation("io.github.resilience4j:resilience4j-spring-boot3")
-    // implementation("net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE")
 }
 
 dependencyManagement {

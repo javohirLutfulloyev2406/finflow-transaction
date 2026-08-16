@@ -18,6 +18,9 @@ import java.time.Instant;
 @AllArgsConstructor
 public class TransactionFilterRequest {
 
+    /** Controller SecurityUtil orqali qo'yadi — client'dan qabul qilinmaydi (o'zganing tranzaksiyasini so'ramasin). */
+    private Long userId;
+
     private TransactionStatus status;
     private TransactionType type;
     private Currency currency;

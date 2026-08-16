@@ -40,13 +40,16 @@ public class AccountRestClient implements AccountClient {
     @Override
     public AccountBalance getBalance(UUID accountId) {
         try {
-            AccountServiceAccountResponse response = accountServiceRestClient.get()
-                    .uri("/api/v1/accounts/{id}", accountId)
-                    .retrieve()
-                    .body(AccountServiceAccountResponse.class);
+            // Read-only, side-effect'siz — shuning uchun retry xavfsiz (RetrySupport javadoc'i).
+            return RetrySupport.withRetry("getBalance", 3, 200, () -> {
+                AccountServiceAccountResponse response = accountServiceRestClient.get()
+                        .uri("/api/v1/accounts/{id}", accountId)
+                        .retrieve()
+                        .body(AccountServiceAccountResponse.class);
 
-            Currency currency = Currency.valueOf(response.currency());
-            return new AccountBalance(response.id(), Money.of(response.balance(), currency));
+                Currency currency = Currency.valueOf(response.currency());
+                return new AccountBalance(response.id(), Money.of(response.balance(), currency));
+            });
         } catch (HttpServerErrorException | ResourceAccessException e) {
             throw new AccountServiceUnavailableException();
         }

@@ -1,0 +1,19 @@
+# Root docker-compose.yml ichida ishga tushganda faollashadi (SPRING_PROFILES_ACTIVE=docker).
+# application.yml'dagi localhost qiymatlarini konteyner hostname'lariga almashtiradi —
+# boshqa hech narsa (schema, pool sozlamalari) qayta yozilmaydi.
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/finflow_tx
+
+  data:
+    redis:
+      host: redis
+
+  kafka:
+    bootstrap-servers: kafka:9092
+
+finflow:
+  account-service:
+    base-url: http://account-service:8082
+  user-service:
+    base-url: http://user-service:8081

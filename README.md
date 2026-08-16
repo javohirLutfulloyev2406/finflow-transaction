@@ -50,8 +50,8 @@ Startup muvaffaqiyatli bo'lsa:
 | Outbox poller | ⬜ |
 | Saga choreography | ⬜ |
 | Fraud engine | ⬜ |
-| Controller + Security | ⬜ |
-| gRPC client (account-service) | ⬜ |
+| Controller + Security | ✅ |
+| REST client (account-service) | ✅ |
 | Quartz scheduled payments | ⬜ |
 
 ## Java versiyasi

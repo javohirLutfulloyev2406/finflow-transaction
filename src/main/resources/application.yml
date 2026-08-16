@@ -87,11 +87,21 @@ logging:
     com.finflow.transaction: DEBUG
     org.hibernate.orm.jdbc.bind: TRACE   # Faqat dev. Prod'da OFF — PII log'ga tushmasin.
 
+# JWT — user-service bilan bir xil secret/algoritm (HS256). Token shu yerda faqat validate qilinadi.
+jwt:
+  secret: ${JWT_SECRET:dGhpcyBpcyBhIHNlY3JldCBrZXkgZm9yIGZpbmZsb3cgcHJvamVjdA==}
+
 # ---- Domen sozlamalari (keyingi bosqichlarda ishlatiladi) ----
 finflow:
   account-service:
     # TODO: kontrakt kelishilgach service discovery (Eureka/Consul) yoki env var'ga o'tkaziladi
     base-url: http://localhost:8082
+    connect-timeout-ms: 2000
+    read-timeout-ms: 5000
+  user-service:
+    base-url: http://localhost:8081
+    connect-timeout-ms: 2000
+    read-timeout-ms: 3000
   idempotency:
     ttl: PT24H       # COMPLETED javob qancha yashaydi
     lock-ttl: PT1M   # IN_PROGRESS marker: crash bo'lsa shu vaqtda o'z-o'zidan tozalanadi
