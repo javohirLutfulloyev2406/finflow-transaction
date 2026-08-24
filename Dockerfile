@@ -10,7 +10,7 @@ WORKDIR /app
 COPY build.gradle.kts settings.gradle.kts gradle.properties ./
 COPY src src
 
-RUN gradle clean build -x test --no-daemon
+RUN --mount=type=cache,target=/root/.gradle gradle clean build -x test --no-daemon
 
 # ================================
 # Stage 2: Run
